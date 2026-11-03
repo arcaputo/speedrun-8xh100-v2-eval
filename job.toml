@@ -1,0 +1,17 @@
+# python:3.12 (not -slim): Triton compiles a small C helper and needs gcc; git rebuilds the parent's code.
+# It has no CUDA toolkit: the CUDA headers come from NVIDIA's pip wheels (requirements.txt, bench.py's cuda_home).
+image = "python:3.12"
+requirements = "requirements.txt"
+# Measured on the base (a3-highgpu-8g): the first run of a code takes ~11 min (compiling), later runs ~6.5 min
+# (startup, cache-hit compile, warmup and validation around ~75 s of train_time). A node's 10 + 4 runs with two
+# codes compiling come to ~100 min, plus a few minutes of setup and data.
+timeout_s = 7800
+# A preempted spot run starts over from scratch; SkyPilot may recover it up to this many times.
+max_retries = 3
+
+[resources]
+cpus = "32+"
+memory = "256+"
+# 8×H100 on GCP is a3-highgpu-8g: SXM on an HGX board with NVLink, as the speedrun needs.
+accelerators = "H100:8"
+use_spot = true
